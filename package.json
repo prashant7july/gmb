@@ -1,0 +1,24 @@
+{
+  "name": "google_my_business",
+  "version": "1.0.0",
+  "description": "An npm Package for Node.js to retrive Google My Business Profile fetch / create Location, Lat/Long in JSON from the Google My Business API.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/prashant7july/gmb.git"
+  },
+  "keywords": [
+    "google-my-business",
+    "profile",
+    "google-my-business-location"
+  ],
+  "author": "Prashant Shekher <prashant7july@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/prashant7july/gmb/issues"
+  },
+  "homepage": "https://github.com/prashant7july/gmb#readme"
+}
