@@ -7,6 +7,12 @@ NodeJS driver for the GMB API.
 
 `npm install google_my_business`
 
+## How it works
+
+var demo = require('google_my_business')
+console.log(demo)
+demo.PrintMsg();  
+
 ## More infos
 
 * You can find more informations on the [Google My Business developer](https://developers.google.com/oauthplayground/) website.
