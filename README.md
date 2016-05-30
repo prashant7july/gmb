@@ -9,8 +9,7 @@ NodeJS driver for the GMB API.
 
 ## How it works
 
-var demo = require('google_my_business')
-console.log(demo)
+var demo = require('google_my_business');
 demo.PrintMsg();  
 
 ## More infos
