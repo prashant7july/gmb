@@ -1,6 +1,6 @@
 {
   "name": "google_my_business",
-  "version": "2.0.1",
+  "version": "2.1.1",
   "description": "An npm Package for Node.js to retrive Google My Business Profile fetch / create Location, Lat/Long in JSON from the Google My Business API.",
   "main": "index.js",
   "scripts": {
