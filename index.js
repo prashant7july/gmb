@@ -1,11 +1,3 @@
-//module.exports = require('./lib/gmb');
-/*
-exports.PrintMsg = function () {
-	console.log("TEST BY PRASHANT")
-}
-
-*/
-
 'use strict';
 var GMB = (function() {
 	var 
@@ -45,7 +37,7 @@ var GMB = (function() {
 			scope:  null,
 			redirectUri: null,
 			proxy: null,
-			userAgent: 'thuzi_nodejssdk/' + version
+			userAgent: 'google_my_business/' + version
 		},
 		readOnlyCalls = {
 			'v3.accounts': true,
