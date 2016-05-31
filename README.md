@@ -9,8 +9,19 @@ NodeJS driver for the GMB API.
 
 ## How it works
 
-var demo = require('google_my_business');
-demo.PrintMsg();  
+```js
+var GMB = require('google_my_business')
+
+GMB.options({version: 'v3'});
+GMB.setAccessToken('access_token');
+GMB.api('accounts', 'get', {}, function (res) {
+  if(!res || res.error) {
+    console.log(!res ? 'error occurred' : res.error);
+    return;
+  }
+  console.log(res);
+});
+```
 
 ## More infos
 

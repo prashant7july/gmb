@@ -20,5 +20,8 @@
   "bugs": {
     "url": "https://github.com/prashant7july/gmb/issues"
   },
-  "homepage": "https://github.com/prashant7july/gmb#readme"
+  "homepage": "https://github.com/prashant7july/gmb#readme",
+  "dependencies": {
+    "request": "^2.72.0"
+  }
 }
