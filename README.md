@@ -26,6 +26,7 @@ GMB.api('accounts', 'get', {}, function (res) {
 ## More infos
 
 * You can find more informations on the [Google My Business developer](https://developers.google.com/oauthplayground/) website.
+* You can find more informations on the [YouTube.COM](https://www.youtube.com/watch?v=9FJRjY-Q_6A) website.
 * If you have any questions or remark, feel free to contact us at `prashant7july@gmail.com`
 
 ## License
