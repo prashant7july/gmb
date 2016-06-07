@@ -8,29 +8,20 @@ var GMB = (function() {
 		QS       = require('querystring'),
 		crypto   = require('crypto'),
 		version  = require('./package.json').version,
-		//getLoginUrl,
 		api,
-		//napi,
-		//nodeifyCallback,
 		google,
-		//rest,
 		oauthRequest,
 		parseOAuthApiResponse,
 		stringifyParams,
 		setAccessToken,
 		getAccessToken,
-		getAppSecretProof,
-		parseSignedRequest,
-		base64UrlDecode,
+		setJson,
 		log,
 		has,
 		options,
 		METHODS = ['get', 'post', 'delete', 'put'],
 		opts = {
 			accessToken: null,
-			appId: null,
-			appSecret: null,
-			appSecretProof: null,
 			beta: false,
 			version: 'v2.0',
 			timeout: null,
@@ -38,9 +29,6 @@ var GMB = (function() {
 			redirectUri: null,
 			proxy: null,
 			userAgent: 'google_my_business/' + version
-		},
-		readOnlyCalls = {
-			'v3.accounts': true,
 		};
 
 	/**
@@ -64,13 +52,13 @@ var GMB = (function() {
 	 * Except the path, all arguments to this function are optiona. So any of
 	 * these are valid:
 	 *
-	 *  GMB.api('/me') // throw away the response
-	 *  GMB.api('/me', function(r) { console.log(r) })
+	 *  GMB.api('/accounts') // throw away the response
+	 *  GMB.api('/accounts', function(r) { console.log(r) })
 	 *  GMB.api('/me', { fields: 'email' }); // throw away response
 	 *  GMB.api('/me', { fields: 'email' }, function(r) { console.log(r) });
-	 *  GMB.api('/123456789', 'delete', function(r) { console.log(r) } );
+	 *  GMB.api('accounts/accounts/115683801091927416992/locations/17408462555750810870', 'delete', function(r) { console.log(r) } );
 	 *  GMB.api(
-	 *      '/me/feed',
+	 *      'accounts/115683801091927416992/locations?languageCode=en&validateOnly=true&requestId=da822c46-ce15-4aaf-b385-59860ea75eb4',
 	 *      'post',
 	 *      { body: 'hi there' },
 	 *      function(r) { console.log(r) }
@@ -141,15 +129,9 @@ var GMB = (function() {
 		if ( !params.access_token ) {
 			if ( opts.accessToken ) {
 				params.access_token = opts.accessToken;
-				if ( opts.appSecret ) {
-					params.appsecret_proof = opts.appSecretProof;
-				}
 			}
-		} else if ( !params.appsecret_proof && opts.appSecret ) {
-			params.appsecret_proof = getAppSecretProof(params.access_token, opts.appSecret);
 		}
 
-		//https://mybusiness.googleapis.com/v3/accounts?pageSize=3&pageToken
 		if ( domain === 'google' ) {
 			uri = 'https://mybusiness.googleapis.com/' + options('version') + '/' + path;
 			isOAuthRequest = /^oauth.*/.test('oauth/');
@@ -163,14 +145,9 @@ var GMB = (function() {
 			if ( params.access_token ) {
 				parsedQuery.access_token = params.access_token;
 				delete params.access_token;
-
-				if ( params.appsecret_proof ) {
-					parsedQuery.appsecret_proof = params.appsecret_proof;
-					delete params.appsecret_proof;
-				}
 			}
-
-			body = stringifyParams(params);
+			//body = stringifyParams(params);
+			body = params;
 		} else {
 			for (key in params) {
 				parsedQuery[key] = params[key];
@@ -181,12 +158,24 @@ var GMB = (function() {
 		uri = URL.format(parsedUri);
 
 		pool = {maxSockets: options('maxSockets') || Number(process.env.MAX_SOCKETS) || 5};
-		requestOptions = {
-			method: method,
-			uri: uri,
-			body: body,
-			pool: pool
-		};
+
+		if ( method === 'post' ) {
+			requestOptions = {
+				method: method,
+				uri: uri,
+				body: body,
+				json: true,
+				pool: pool
+			};
+		} else {
+			requestOptions = {
+				method: method,
+				uri: uri,
+				body: body,
+				pool: pool
+			};
+		}
+
 		if ( options('proxy') ) {
 			requestOptions['proxy'] = options('proxy');
 		}
@@ -198,7 +187,7 @@ var GMB = (function() {
 				'User-Agent': options('userAgent')
 			};
 		}
-		console.log(requestOptions)
+
 		//debugReq(method.toUpperCase() + ' ' + uri);
 		request(requestOptions,
 			function(error, response, body) {
@@ -281,95 +270,8 @@ var GMB = (function() {
 		options({accessToken: accessToken});
 	};
 
-	getAppSecretProof = function(accessToken, appSecret) {
-		var hmac = crypto.createHmac('sha256', appSecret);
-		hmac.update(accessToken);
-		return hmac.digest('hex');
-	};
-
-	/**
-	 *
-	 * @access public
-	 * @param signedRequest {String} the signed request value
-	 * @param appSecret {String} the application secret
-	 * @return {Object} the parsed signed request or undefined if failed
-	 *
-	 * throws error if appSecret is not defined
-	 *
-	 * GMB.parseSignedRequest('signedRequest', 'appSecret')
-	 * GMB.parseSignedRequest('signedRequest') // will use appSecret from options('appSecret')
-	 *
-	 */
-	parseSignedRequest = function() {
-		var args = Array.prototype.slice.call(arguments),
-			signedRequest = args.shift(),
-			appSecret = args.shift() || options('appSecret'),
-			split,
-			encodedSignature,
-			encodedEnvelope,
-			envelope,
-			hmac,
-			base64Digest,
-			base64UrlDigest;
-
-		if ( !signedRequest ) {
-			debugSig('invalid signedRequest');
-			return;
-		}
-
-		if ( !appSecret ) {
-			throw new Error('appSecret required');
-		}
-
-		split = signedRequest.split('.');
-
-		if ( split.length !== 2 ) {
-			debugSig('invalid signedRequest');
-			return;
-		}
-
-		encodedSignature = split.shift();
-		encodedEnvelope = split.shift();
-
-		if ( !encodedSignature || !encodedEnvelope ) {
-			debugSig('invalid signedRequest');
-			return;
-		}
-
-		try {
-			envelope = JSON.parse(base64UrlDecode(encodedEnvelope));
-		} catch (ex) {
-			debugSig('encodedEnvelope is not a valid base64 encoded JSON');
-			return;
-		}
-
-		if ( !(envelope && has(envelope, 'algorithm') && envelope.algorithm.toUpperCase() === 'HMAC-SHA256') ) {
-			debugSig(envelope.algorithm + ' is not a supported algorithm, must be one of [HMAC-SHA256]');
-			return;
-		}
-
-		hmac = crypto.createHmac('sha256', appSecret);
-		hmac.update(encodedEnvelope);
-		base64Digest = hmac.digest('base64');
-
-		// remove Base64 padding
-		base64UrlDigest = base64Digest.replace(/={1,3}$/, '');
-
-		// Replace illegal characters
-		base64UrlDigest = base64UrlDigest.replace(/\+/g, '-').replace(/\//g, '_');
-
-		if ( base64UrlDigest !== encodedSignature ) {
-			debugSig('invalid signature');
-			return;
-		}
-
-		return envelope;
-	};
-
-	base64UrlDecode = function(str) {
-		var base64String = str.replace(/\-/g, '+').replace(/_/g, '/');
-		var buffer = new Buffer(base64String, 'base64');
-		return buffer.toString('utf8');
+	setJson = function(json) {
+		options({json: json});
 	};
 
 	options = function(keyOrOptions) {
@@ -383,15 +285,6 @@ var GMB = (function() {
 		for (key in opts) {
 			if ( has(opts, key) && has(keyOrOptions, key) ) {
 				opts[key] = keyOrOptions[key];
-				switch (key) {
-				case 'appSecret':
-				case 'accessToken':
-					opts.appSecretProof =
-						(opts.appSecret && opts.accessToken) ?
-						getAppSecretProof(opts.accessToken, opts.appSecret) :
-						null;
-					break;
-				}
 			}
 		}
 	};
@@ -400,7 +293,7 @@ var GMB = (function() {
 		api: api,
 		getAccessToken: getAccessToken,
 		setAccessToken: setAccessToken, 
-		parseSignedRequest: parseSignedRequest, 
+		setJson: setJson,
 		options: options, 
 		version: version, 
 	};
