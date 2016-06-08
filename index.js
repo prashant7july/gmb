@@ -15,7 +15,6 @@ var GMB = (function() {
 		stringifyParams,
 		setAccessToken,
 		getAccessToken,
-		setJson,
 		log,
 		has,
 		options,
@@ -162,9 +161,8 @@ var GMB = (function() {
 		if ( method === 'post' ) {
 			requestOptions = {
 				method: method,
+				json: body,
 				uri: uri,
-				body: body,
-				json: true,
 				pool: pool
 			};
 		} else {
@@ -204,7 +202,11 @@ var GMB = (function() {
 				} else {
 					var json;
 					try {
-						json = JSON.parse(body);
+					    if ( typeof body ) {
+					      json = body;
+					    } else {
+					      json = JSON.parse(body);           
+					    }
 					} catch (ex) {
 						// sometimes GMB is has API errors that return HTML and a message
 						// of "Sorry, something went wrong". These are infrequent and unpredictable but
@@ -270,10 +272,6 @@ var GMB = (function() {
 		options({accessToken: accessToken});
 	};
 
-	setJson = function(json) {
-		options({json: json});
-	};
-
 	options = function(keyOrOptions) {
 		var key;
 		if ( !keyOrOptions ) {
@@ -292,8 +290,7 @@ var GMB = (function() {
 	return {
 		api: api,
 		getAccessToken: getAccessToken,
-		setAccessToken: setAccessToken, 
-		setJson: setJson,
+		setAccessToken: setAccessToken,
 		options: options, 
 		version: version, 
 	};
