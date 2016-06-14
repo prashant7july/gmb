@@ -32,7 +32,7 @@ var GMB = require('google_my_business')
 
 var postData =    {
     "storeCode": "GOOG-SYD",
-    "locationName": "Google Uttam Nagar",
+    "locationName": "Google Sydney",
     "primaryPhone": "(02) 1234 5678",
     "address": {
       "addressLines": [

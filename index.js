@@ -1,20 +1,16 @@
 'use strict';
 var GMB = (function() {
 	var 
-		//debugReq = require('debug')('google_my_business:req'),
-		//debugSig = require('debug')('google_my_business:sig'),
 		request  = require('request'),
 		URL      = require('url'),
 		QS       = require('querystring'),
-		crypto   = require('crypto'),
 		version  = require('./package.json').version,
 		api,
-		google,
+		googlemybusiness,
 		oauthRequest,
 		parseOAuthApiResponse,
 		stringifyParams,
 		setAccessToken,
-		getAccessToken,
 		log,
 		has,
 		options,
@@ -40,31 +36,34 @@ var GMB = (function() {
 	 */
 	api = function() {
 		if ( typeof arguments[0] === 'string' ) {
-			google.apply(this, arguments);
+			googlemybusiness.apply(this, arguments);
 		} 
 	};
 
 	/**
 	 *
-	 * Make a api call to google server.
+	 * Make a api call to google my business client.
 	 *
 	 * Except the path, all arguments to this function are optiona. So any of
 	 * these are valid:
 	 *
 	 *  GMB.api('/accounts') // throw away the response
 	 *  GMB.api('/accounts', function(r) { console.log(r) })
-	 *  GMB.api('/me', { fields: 'email' }); // throw away response
-	 *  GMB.api('/me', { fields: 'email' }, function(r) { console.log(r) });
 	 *  GMB.api('accounts/accounts/115683801091927416992/locations/17408462555750810870', 'delete', function(r) { console.log(r) } );
 	 *  GMB.api(
 	 *      'accounts/115683801091927416992/locations?languageCode=en&validateOnly=true&requestId=da822c46-ce15-4aaf-b385-59860ea75eb4',
 	 *      'post',
-	 *      { body: 'hi there' },
+	 *      {	"storeCode": "GOOG-SYD",
+  	 *			"locationName": "Google SYDNEY",
+  	 *			"primaryPhone": "(02) 1234 5678",
+  	 *			...
+  	 *			...
+ 	 *		},
 	 *      function(r) { console.log(r) }
 	 *  );
 	 *
 	 */
-	google = function() {
+	googlemybusiness = function() {
 		var args = Array.prototype.slice.call(arguments),
 			path = args.shift(),
 			next = args.shift(),
@@ -100,7 +99,7 @@ var GMB = (function() {
 			return;
 		}
 
-		oauthRequest('google', path, method, params, cb);
+		oauthRequest('googlemybusiness', path, method, params, cb);
 	};
 
 	/**
@@ -131,7 +130,7 @@ var GMB = (function() {
 			}
 		}
 
-		if ( domain === 'google' ) {
+		if ( domain === 'googlemybusiness' ) {
 			uri = 'https://mybusiness.googleapis.com/' + options('version') + '/' + path;
 			isOAuthRequest = /^oauth.*/.test('oauth/');
 		}
@@ -186,7 +185,6 @@ var GMB = (function() {
 			};
 		}
 
-		//debugReq(method.toUpperCase() + ' ' + uri);
 		request(requestOptions,
 			function(error, response, body) {
 				if ( error !== null ) {
@@ -256,16 +254,11 @@ var GMB = (function() {
 	};
 
 	log = function(d) {
-		// todo
-		console.log(d); // eslint-disable-line no-console
+		console.log(d);
 	};
 
 	has = function(obj, key) {
 		return Object.prototype.hasOwnProperty.call(obj, key);
-	};
-
-	getAccessToken = function() {
-		return options('accessToken');
 	};
 
 	setAccessToken = function(accessToken) {
@@ -289,7 +282,6 @@ var GMB = (function() {
 
 	return {
 		api: api,
-		getAccessToken: getAccessToken,
 		setAccessToken: setAccessToken,
 		options: options, 
 		version: version, 
