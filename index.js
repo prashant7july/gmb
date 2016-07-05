@@ -139,7 +139,7 @@ var GMB = (function() {
 		delete parsedUri.search;
 		parsedQuery = QS.parse(parsedUri.query);
 
-		if ( method === 'post' ) {
+		if ( method === 'post' || method === 'patch' ) {
 			if ( params.access_token ) {
 				parsedQuery.access_token = params.access_token;
 				delete params.access_token;
