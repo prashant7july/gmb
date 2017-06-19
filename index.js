@@ -200,7 +200,7 @@ var GMB = (function() {
 				} else {
 					var json;
 					try {
-					    if ( typeof body ) {
+					    if ( typeof body === "object") {
 					      json = body;
 					    } else {
 					      json = JSON.parse(body);           
