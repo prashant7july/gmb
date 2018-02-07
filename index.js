@@ -14,7 +14,7 @@ var GMB = (function() {
 		log,
 		has,
 		options,
-		METHODS = ['get', 'post', 'delete', 'put'],
+		METHODS = ['get', 'post', 'delete', 'put', 'patch'],
 		opts = {
 			accessToken: null,
 			beta: false,
@@ -139,7 +139,7 @@ var GMB = (function() {
 		delete parsedUri.search;
 		parsedQuery = QS.parse(parsedUri.query);
 
-		if ( method === 'post' || method === 'patch' ) {
+		if ( method === 'post' || method === 'patch' || method === 'put') {
 			if ( params.access_token ) {
 				parsedQuery.access_token = params.access_token;
 				delete params.access_token;
@@ -157,7 +157,7 @@ var GMB = (function() {
 
 		pool = {maxSockets: options('maxSockets') || Number(process.env.MAX_SOCKETS) || 5};
 
-		if ( method === 'post' ) {
+		if ( method === 'post'  || method === 'patch' || method === 'put' ) {
 			requestOptions = {
 				method: method,
 				json: body,
@@ -200,7 +200,7 @@ var GMB = (function() {
 				} else {
 					var json;
 					try {
-					    if ( typeof body === "object") {
+					    if ( typeof body ) {
 					      json = body;
 					    } else {
 					      json = JSON.parse(body);           
